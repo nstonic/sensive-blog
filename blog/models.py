@@ -9,7 +9,29 @@ class TagQuerySet(models.QuerySet):
         return self.annotate(posts_count=Count('posts')).order_by('-posts_count')
 
 
+class PostQuerySet(models.QuerySet):
+    def popular(self):
+        return self.annotate(likes_count=Count('likes', distinct=True)).order_by('-likes_count')
+
+    def fetch_with_comments_count(self):
+        """Подсчитывает количество комментариев к постам. Даёт выигрыш,
+        если в запросе уже используется annotate по другим атрибутам.
+        Возвращает список постов"""
+
+        posts_ids = [post.id for post in self]
+        posts_with_comments = Post.objects.filter(id__in=posts_ids).annotate(
+            comments_count=Count('comments'))
+        ids_and_comments = posts_with_comments.values_list('id', 'comments_count')
+        count_for_id = dict(ids_and_comments)
+        posts = []
+        for post in self:
+            post.comments_count = count_for_id[post.id]
+            posts.append(post)
+        return posts
+
+
 class Post(models.Model):
+    objects = PostQuerySet.as_manager()
     title = models.CharField('Заголовок', max_length=200)
     text = models.TextField('Текст')
     slug = models.SlugField('Название в виде url', max_length=200)
