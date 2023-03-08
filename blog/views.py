@@ -1,6 +1,6 @@
 from django.db.models import Count
 from django.shortcuts import render, get_object_or_404
-from blog.models import Comment, Post, Tag
+from blog.models import Post, Tag
 
 
 def serialize_post(post):
