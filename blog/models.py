@@ -10,11 +10,9 @@ class TagQuerySet(models.QuerySet):
 
 
 class PostQuerySet(models.QuerySet):
-    def count_likes(self):
-        return self.annotate(likes_count=Count('likes', distinct=True))
 
     def popular(self):
-        return self.count_likes().order_by('-likes_count')
+        return self.annotate(likes_count=Count('likes', distinct=True)).order_by('-likes_count')
 
     def fetch_with_comments_count(self):
         """Подсчитывает количество комментариев к постам. Даёт выигрыш,
